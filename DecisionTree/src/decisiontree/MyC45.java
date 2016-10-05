@@ -183,11 +183,12 @@ public class MyC45 extends Classifier {
         double infoGain = computeEntropy(instances);
         double splitInfo = 0;
         double gainRatio = 0;
+        double fraction = 0.0;
         Instances[] splitData = splitData(instances, attr);
         for (int j = 0; j < attr.numValues(); j++) {
             if (splitData[j].numInstances() > 0) {
                 infoGain -= ((double) splitData[j].numInstances() / (double) instances.numInstances()) * computeEntropy(splitData[j]);
-                double fraction = splitData[j].numInstances() / instances.numInstances();
+                fraction = (double) splitData[j].numInstances() / instances.numInstances();
                 if (fraction != 0)
                     splitInfo += fraction * Utils.log2(fraction);
             }
@@ -253,4 +254,34 @@ public class MyC45 extends Classifier {
 
         return newData;
     }
+    
+    public String toString() {  
+        if ((m_Distribution == null) && (m_Successors == null)) {  
+          return "C45: No model built yet.";  
+        }  
+        return "C45\n\n" + toString(0);  
+    }
+    
+    private String toString(int level) {  
+  
+        StringBuffer text = new StringBuffer();  
+
+        if (m_Attribute == null) {  
+            if (Instance.isMissingValue(m_ClassValue)) {  
+                text.append(": null");  
+            } else {  
+                text.append(": "+ m_ClassAttribute.value((int) m_ClassValue));  
+            }   
+        } else {  
+            for (int j = 0; j < m_Attribute.numValues(); j++) {  
+                text.append("\n");  
+                for (int i = 0; i < level; i++) {  
+                    text.append("|  ");  
+                }  
+                text.append(m_Attribute.name() + " = " + m_Attribute.value(j));  
+                text.append(m_Successors[j].toString(level + 1));  
+            }  
+        }  
+        return text.toString();  
+  } 
 }
