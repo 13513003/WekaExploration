@@ -99,7 +99,7 @@ public class Main {
                     cls = new myID3();
                     cls.buildClassifier(dataSet);
                 } else if (classifierType.equals("C45")) {
-                    //cls = new myC45();
+                    cls = new MyC45();
                     cls.buildClassifier(dataSet);
                 }
                 break;
@@ -183,7 +183,7 @@ public class Main {
                         break;
                     }
                     case 3 : {
-                        //cls = new myC45();
+                        cls = new MyC45();
                         cls.buildClassifier(dataSet);
                         classifierType = "C45";
                         System.out.println("C45 Classifier successfully built.\n");
@@ -317,8 +317,8 @@ public class Main {
                     cls = (myID3) SerializationHelper.read(
                             new FileInputStream("saves/ID3/" + fileNames.get(choice)));
                 else if (classifierType.equals("C45"))
-                    //cls = (myC45) SerializationHelper.read(
-                    //        new FileInputStream("saves/C45/" + fileNames.get(choice)));
+                    cls = (MyC45) SerializationHelper.read(
+                            new FileInputStream("saves/C45/" + fileNames.get(choice)));
                 System.out.println(fileNames.get(choice) + " successfully loaded.\n");
                 break;
             }
