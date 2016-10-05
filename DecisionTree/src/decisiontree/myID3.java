@@ -7,9 +7,6 @@ package decisiontree;
 
 import java.util.ArrayList;
 import java.util.Enumeration;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 import weka.classifiers.Classifier;
 import weka.core.Attribute;
 import weka.core.Capabilities;
@@ -18,14 +15,13 @@ import weka.core.Instance;
 import weka.core.Instances;
 import weka.core.Utils;
 
-public class myID3 extends Classifier{
+public class MyID3 extends Classifier{
     
-    private myID3[] child;
+    private MyID3[] child;
     private Attribute splitAttr;
     private double leafValue;
     private double[] leafDist;
     private Attribute classAttr;
-    private static final long serialVersionUID = 2404406538125671745L;
     
     @Override
     public void buildClassifier(Instances data) throws Exception {
@@ -44,7 +40,6 @@ public class myID3 extends Classifier{
         cap.enable(Capability.NOMINAL_ATTRIBUTES);
 
         // class
-        cap.enable(Capability.BINARY_CLASS);
         cap.enable(Capability.NOMINAL_CLASS);
         cap.enable(Capability.MISSING_CLASS_VALUES);
 
@@ -58,7 +53,7 @@ public class myID3 extends Classifier{
         // Check if no instances have reached this node.  
         if (data.numInstances() == 0) {  
           splitAttr = null;  
-          leafValue = Instance.missingValue();  
+          leafValue = Double.NaN;  
           leafDist = new double[data.numClasses()];  
           return;  
         }
@@ -75,7 +70,7 @@ public class myID3 extends Classifier{
           Attribute att = (Attribute) attEnum.nextElement();  
           infoGains[att.index()] = computeInfoGain(data, att);  
         }  
-        splitAttr = data.attribute(Utils.maxIndex(infoGains));  
+        splitAttr = data.attribute(maxIndex(infoGains));  
 
         // Make leaf if information gain is zero.   
         // Otherwise create successors.  
@@ -87,17 +82,45 @@ public class myID3 extends Classifier{
             Instance inst = (Instance) instEnum.nextElement();  
             leafDist[(int) inst.classValue()]++;  
           }  
-          Utils.normalize(leafDist);  
+          normalize(leafDist);  
           leafValue = Utils.maxIndex(leafDist);  
-          classAttr = data.classAttribute();  
+          classAttr = data.classAttribute();
         } else {  
           Instances[] splitData = splitData(data, splitAttr);  
-          child = new myID3[splitAttr.numValues()];  
+          child = new MyID3[splitAttr.numValues()];  
           for (int j = 0; j < splitAttr.numValues(); j++) {  
-            child[j] = new myID3();  
+            child[j] = new MyID3();  
             child[j].makeTree(splitData[j]);  
           }  
         }  
+    }
+    
+    @Override
+    public double classifyInstance(Instance instance) throws Exception {
+        if (instance.hasMissingValue()) {
+              throw new Exception("Can't handle missing value(s)");
+        }
+	if (splitAttr == null) {
+            if (Utils.eq(leafValue, Double.NaN)) {
+                return instance.value(classAttr);
+            } else {
+                return leafValue;
+            }
+        } else {
+            return child[(int) instance.value(splitAttr)].classifyInstance(instance);
+        }
+    }
+    
+    @Override
+    public double[] distributionForInstance(Instance instance) throws Exception {
+        if (instance.hasMissingValue()) {
+            throw new Exception("Can't handle missing value(s)");
+        }
+        if (splitAttr == null) {
+            return leafDist;
+        } else {
+            return child[(int) instance.value(splitAttr)].distributionForInstance(instance);
+        }
     }
     
     private double computeInfoGain(Instances data, Attribute att) {   
@@ -130,11 +153,12 @@ public class myID3 extends Classifier{
         for (Double value: classValues) {
             int index = classValues.indexOf(value);
             if (classCount[index] > 0) {
-                double temp = (double) classCount[index] / (double) numClasses;
-                entropy += (-1) * temp * Utils.log2(temp);
+                double temp = (double) classCount[index] / data.numInstances();
+                entropy -= temp * Utils.log2(temp);
             }
         }
         return entropy;
+         
     }
     
     private Instances[] splitData(Instances data, Attribute att) {  
@@ -154,34 +178,63 @@ public class myID3 extends Classifier{
         return splitData;  
     }
     
+    private static int maxIndex(double[] array) {
+        double max = 0;
+        int index = 0;
+
+        if (array.length > 0) {
+            for (int i = 0; i < array.length; ++i) {
+                if (array[i] > max) {
+                    max = array[i];
+                    index = i;
+                }
+            }
+            return index;
+        } else {
+            return -1;
+        }
+    }
+    
+    private void normalize(double[] array) {
+        double sum = 0;
+        for (double val : array) {
+            sum += val;
+        }
+
+        if (!Double.isNaN(sum) && sum != 0) {
+            for (int i = 0; i < array.length; ++i) {
+                array[i] /= sum;
+            }
+        }
+    }
+    
     public String toString() {  
         if ((leafDist == null) && (child == null)) {  
           return "Id3: No model built yet.";  
         }  
-        return "Id3\n\n" + toString(0);  
+        return "Id3\n" + toString(0);  
     }
     
     private String toString(int level) {  
-  
-    StringBuffer text = new StringBuffer();  
-      
-    if (splitAttr == null) {  
-      if (Instance.isMissingValue(leafValue)) {  
-        text.append(": null");  
-      } else {  
-        text.append(": "+classAttr.value((int) leafValue));  
-      }   
-    } else {  
-      for (int j = 0; j < splitAttr.numValues(); j++) {  
-        text.append("\n");  
-        for (int i = 0; i < level; i++) {  
-          text.append("|  ");  
-    }  
-        text.append(splitAttr.name() + " = " + splitAttr.value(j));  
-        text.append(child[j].toString(level + 1));  
-      }  
-    }  
-    return text.toString();  
+        StringBuffer text = new StringBuffer();  
+
+        if (splitAttr == null) {  
+          if (Instance.isMissingValue(leafValue)) {  
+            text.append(": null");  
+          } else {  
+            text.append(": "+classAttr.value((int) leafValue));  
+          }   
+        } else {  
+          for (int j = 0; j < splitAttr.numValues(); j++) {  
+            text.append("\n");  
+            for (int i = 0; i < level; i++) {  
+              text.append("|  ");  
+        }  
+            text.append(splitAttr.name() + " = " + splitAttr.value(j));  
+            text.append(child[j].toString(level + 1));  
+          }  
+        }  
+        return text.toString();  
   } 
     
 }

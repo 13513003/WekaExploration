@@ -37,7 +37,7 @@ public class Main {
         dataSet = ConverterUtils.DataSource.read("input/train/" + fileNames.get(choice));
          if (dataSet.classIndex() == -1)
             dataSet.setClassIndex(dataSet.numAttributes() - 1);
-        System.out.println("Dataset "+ fileNames.get(choice) + "successfully loaded.\n");
+        System.out.println("Dataset "+ fileNames.get(choice) + " successfully loaded.\n");
     }
     
     public static ArrayList<String> getFileNames(String dir) {
@@ -96,8 +96,12 @@ public class Main {
                     cls = new NaiveBayes();
                     cls.buildClassifier(dataSet);
                 } else if (classifierType.equals("ID3")) {
-                    cls = new myID3();
-                    cls.buildClassifier(dataSet);
+                    try {
+                        cls = new MyID3();
+                        cls.buildClassifier(dataSet);
+                    } catch (Exception ex) {
+                        System.out.println(ex);
+                    }
                 } else if (classifierType.equals("C45")) {
                     cls = new MyC45();
                     cls.buildClassifier(dataSet);
@@ -176,10 +180,14 @@ public class Main {
                         break;
                     }
                     case 2 : {
-                        cls = new myID3();
-                        cls.buildClassifier(dataSet);
-                        classifierType = "ID3";
-                        System.out.println("ID3 Classifier successfully built.\n");
+                        try {
+                            cls = new MyID3();
+                            cls.buildClassifier(dataSet);
+                            classifierType = "ID3";
+                            System.out.println("ID3 Classifier successfully built.\n");
+                        } catch(Exception ex) {
+                            System.out.println(ex);
+                        }
                         break;
                     }
                     case 3 : {
