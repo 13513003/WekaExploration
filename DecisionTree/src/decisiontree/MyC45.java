@@ -52,7 +52,6 @@ public class MyC45 extends Classifier {
      * displaying in the explorer/experimenter gui
      */
     public String globalInfo() {
-
       return  "Class for generating a pruned or unpruned C4.5 decision tree. For more "
         + "information, see\n\n"
         + "Ross Quinlan (1993). \"C4.5: Programs for Machine Learning\", "
@@ -65,22 +64,22 @@ public class MyC45 extends Classifier {
     * @return      the capabilities of this classifier
     */
     public Capabilities getCapabilities() {
-     Capabilities result = super.getCapabilities();
-     result.disableAll();
+        Capabilities result = super.getCapabilities();
+        result.disableAll();
 
-     // attributes
-     result.enable(Capability.NOMINAL_ATTRIBUTES);
-     result.enable(Capability.NUMERIC_ATTRIBUTES);
-     result.enable(Capability.MISSING_VALUES);
+        // attributes
+        result.enable(Capability.NOMINAL_ATTRIBUTES);
+        result.enable(Capability.NUMERIC_ATTRIBUTES);
+        result.enable(Capability.MISSING_VALUES);
 
-     // class
-     result.enable(Capability.NOMINAL_CLASS);
-     result.enable(Capability.MISSING_CLASS_VALUES);
+        // class
+        result.enable(Capability.NOMINAL_CLASS);
+        result.enable(Capability.MISSING_CLASS_VALUES);
 
-     // instances
-     result.setMinimumNumberInstances(0);
+        // instances
+        result.setMinimumNumberInstances(0);
 
-     return result;
+        return result;
     }
     
     // TODO: PruneTree
@@ -108,45 +107,45 @@ public class MyC45 extends Classifier {
     */
     private void makeTree(Instances instances) throws Exception {
 
-     // Check if no instances have reached this node.
-     if (instances.numInstances() == 0) {
-       m_Attribute = null;
-       m_ClassValue = Instance.missingValue();
-       m_Distribution = new double[instances.numClasses()];
-       return;
-     }
+        // Check if no instances have reached this node.
+        if (instances.numInstances() == 0) {
+            m_Attribute = null;
+            m_ClassValue = Instance.missingValue();
+            m_Distribution = new double[instances.numClasses()];
+            return;
+        }
 
-     // Compute attribute with maximum gain ratio.
-     double[] gainRatios = new double[instances.numAttributes()];
-     Enumeration attrEnum = instances.enumerateAttributes();
-     while (attrEnum.hasMoreElements()) {
-       Attribute attr = (Attribute) attrEnum.nextElement();
-       // TODO: 2 types of computeGainRatio to handle numeric and nominal values
-       gainRatios[attr.index()] = computeGainRatio(instances, attr);
-     }
-     m_Attribute = instances.attribute(Utils.maxIndex(gainRatios));
+        // Compute attribute with maximum gain ratio.
+        double[] gainRatios = new double[instances.numAttributes()];
+        Enumeration attrEnum = instances.enumerateAttributes();
+        while (attrEnum.hasMoreElements()) {
+            Attribute attr = (Attribute) attrEnum.nextElement();
+            // TODO: 2 types of computeGainRatio to handle numeric and nominal values
+            gainRatios[attr.index()] = computeGainRatio(instances, attr);
+        }
+        m_Attribute = instances.attribute(Utils.maxIndex(gainRatios));
 
-     // Make leaf if gain ratio is zero. 
-     // Otherwise create successors.
-     if (Utils.eq(gainRatios[m_Attribute.index()], 0)) {
-       m_Attribute = null;
-       m_Distribution = new double[instances.numClasses()];
-       Enumeration instEnum = instances.enumerateInstances();
-       while (instEnum.hasMoreElements()) {
-         Instance inst = (Instance) instEnum.nextElement();
-         m_Distribution[(int) inst.classValue()]++;
-       }
-       Utils.normalize(m_Distribution);
-       m_ClassValue = Utils.maxIndex(m_Distribution);
-       m_ClassAttribute = instances.classAttribute();
-     } else {
-       Instances[] splitData = splitData(instances, m_Attribute);
-       m_Successors = new MyC45[m_Attribute.numValues()];
-       for (int j = 0; j < m_Attribute.numValues(); j++) {
-         m_Successors[j] = new MyC45();
-         m_Successors[j].makeTree(splitData[j]);
-       }
-     }
+        // Make leaf if gain ratio is zero. 
+        // Otherwise create successors.
+        if (Utils.eq(gainRatios[m_Attribute.index()], 0)) {
+            m_Attribute = null;
+            m_Distribution = new double[instances.numClasses()];
+            Enumeration instEnum = instances.enumerateInstances();
+            while (instEnum.hasMoreElements()) {
+                Instance inst = (Instance) instEnum.nextElement();
+                m_Distribution[(int) inst.classValue()]++;
+            }
+            Utils.normalize(m_Distribution);
+            m_ClassValue = Utils.maxIndex(m_Distribution);
+            m_ClassAttribute = instances.classAttribute();
+        } else {
+            Instances[] splitData = splitData(instances, m_Attribute);
+            m_Successors = new MyC45[m_Attribute.numValues()];
+            for (int j = 0; j < m_Attribute.numValues(); j++) {
+                m_Successors[j] = new MyC45();
+                m_Successors[j].makeTree(splitData[j]);
+            }
+        }
     }
     
     /**
@@ -157,40 +156,43 @@ public class MyC45 extends Classifier {
     * @return the sets of instances produced by the split
     */
     private Instances[] splitData(Instances data, Attribute att) {
-
-     Instances[] splitData = new Instances[att.numValues()];
-     for (int j = 0; j < att.numValues(); j++) {
-       splitData[j] = new Instances(data, data.numInstances());
-     }
-     Enumeration instEnum = data.enumerateInstances();
-     while (instEnum.hasMoreElements()) {
-       Instance inst = (Instance) instEnum.nextElement();
-       splitData[(int) inst.value(att)].add(inst);
-     }
-     for (int i = 0; i < splitData.length; i++) {
-       splitData[i].compactify();
-     }
-     return splitData;
+        Instances[] splitData = new Instances[att.numValues()];
+        for (int j = 0; j < att.numValues(); j++) {
+            splitData[j] = new Instances(data, data.numInstances());
+        }
+        Enumeration instEnum = data.enumerateInstances();
+        while (instEnum.hasMoreElements()) {
+            Instance inst = (Instance) instEnum.nextElement();
+            splitData[(int) inst.value(att)].add(inst);
+        }
+        for (int i = 0; i < splitData.length; i++) {
+            splitData[i].compactify();
+        }
+        return splitData;
     }
     
     /**
-    * Computes information gain for an attribute.
+    * Computes information gain ratio for an attribute.
     *
     * @param data the data for which info gain is to be computed
     * @param att the attribute
-    * @return the information gain for the given attribute and data
+    * @return the information gain ratio for the given attribute and data
     * @throws Exception if computation fails
     */
     private double computeGainRatio(Instances instances, Attribute attr) throws Exception {
-        double gainRatio = computeEntropy(instances);
+        double infoGain = computeEntropy(instances);
+        double splitInfo = 0;
+        double gainRatio = 0;
         Instances[] splitData = splitData(instances, attr);
         for (int j = 0; j < attr.numValues(); j++) {
-          if (splitData[j].numInstances() > 0) {
-            gainRatio -= ((double) splitData[j].numInstances() /
-                         (double) instances.numInstances()) *
-              computeEntropy(splitData[j]);
-          }
+            if (splitData[j].numInstances() > 0) {
+                infoGain -= ((double) splitData[j].numInstances() / (double) instances.numInstances()) * computeEntropy(splitData[j]);
+                double fraction = splitData[j].numInstances() / instances.numInstances();
+                if (fraction != 0)
+                    splitInfo += fraction * Utils.log2(fraction);
+            }
         }
+        gainRatio = infoGain/splitInfo;
         return gainRatio;
     }
     
