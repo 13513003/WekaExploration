@@ -83,7 +83,6 @@ public class MyC45 extends Classifier {
     }
     
     // TODO: PruneTree
-    // TODO: Calculate Gain Ratio
     // TODO: Handle Numeric and Nominal Values
     public void buildClassifier (Instances instances) throws Exception {
         // can classifier handle the data?
@@ -193,7 +192,11 @@ public class MyC45 extends Classifier {
                     splitInfo += fraction * Utils.log2(fraction);
             }
         }
-        gainRatio = infoGain/splitInfo;
+        if (splitInfo == 0)
+            gainRatio = infoGain;
+        else
+            gainRatio = -1*infoGain/splitInfo;
+        
         return gainRatio;
     }
     
