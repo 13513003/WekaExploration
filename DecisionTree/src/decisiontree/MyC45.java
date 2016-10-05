@@ -339,6 +339,20 @@ public class MyC45 extends Classifier {
         return (double) threshold[Utils.maxIndex(gainRatio)];
     }
     
+    /**
+   * Classifies a given test instance using the decision tree.
+   *
+   * @param instance the instance to be classified
+   * @return the classification
+   */
+    public double classifyInstance(Instance instance) {
+        if (m_Attribute == null) {
+            return m_ClassValue;
+        } else {
+            return m_Successors[(int) instance.value(m_Attribute)].classifyInstance(instance);
+        }
+    }
+    
     public String toString() {  
         if ((m_Distribution == null) && (m_Successors == null)) {  
           return "C45: No model built yet.";  
