@@ -11,7 +11,7 @@
   </resources>
   <resources>
     <j2se version="1.6+" href="http://java.sun.com/products/autodl/j2se"/>
-    <jar href="DecisionTree.jar" size="6360" download="eager" />
+    <jar href="DecisionTree.jar" size="9539" download="eager" />
     <jar href="lib/weka.jar" size="6583694" download="eager" />
   </resources>
   <application-desc main-class="decisiontree.Main"  name="DecisionTree" >

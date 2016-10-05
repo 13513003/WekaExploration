@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package decisiontree;
 
 import java.io.File;
@@ -100,6 +95,12 @@ public class Main {
                 if (classifierType.equals("NB")) {
                     cls = new NaiveBayes();
                     cls.buildClassifier(dataSet);
+                } else if (classifierType.equals("ID3")) {
+                    cls = new myID3();
+                    cls.buildClassifier(dataSet);
+                } else if (classifierType.equals("C45")) {
+                    //cls = new myC45();
+                    cls.buildClassifier(dataSet);
                 }
                 break;
             }
@@ -171,14 +172,21 @@ public class Main {
                         cls = new NaiveBayes();
                         cls.buildClassifier(dataSet);
                         classifierType = "NB";
-                        System.out.println("Classifier successfully built.\n");
+                        System.out.println("Naive-Bayes Classifier successfully built.\n");
                         break;
                     }
                     case 2 : {
-                        cls = new ID3();
+                        cls = new myID3();
                         cls.buildClassifier(dataSet);
                         classifierType = "ID3";
-                        System.out.println("Classifier successfully built.\n");
+                        System.out.println("ID3 Classifier successfully built.\n");
+                        break;
+                    }
+                    case 3 : {
+                        //cls = new myC45();
+                        cls.buildClassifier(dataSet);
+                        classifierType = "C45";
+                        System.out.println("C45 Classifier successfully built.\n");
                         break;
                     }
                     default : {
@@ -305,6 +313,12 @@ public class Main {
                 if (classifierType.equals("NB"))
                     cls = (NaiveBayes) SerializationHelper.read(
                             new FileInputStream("saves/NB/" + fileNames.get(choice)));
+                else if (classifierType.equals("ID3"))
+                    cls = (myID3) SerializationHelper.read(
+                            new FileInputStream("saves/ID3/" + fileNames.get(choice)));
+                else if (classifierType.equals("C45"))
+                    //cls = (myC45) SerializationHelper.read(
+                    //        new FileInputStream("saves/C45/" + fileNames.get(choice)));
                 System.out.println(fileNames.get(choice) + " successfully loaded.\n");
                 break;
             }
