@@ -119,8 +119,13 @@ public class MyC45 extends Classifier {
         Enumeration attrEnum = instances.enumerateAttributes();
         while (attrEnum.hasMoreElements()) {
             Attribute attr = (Attribute) attrEnum.nextElement();
-            // TODO: 2 types of computeGainRatio to handle numeric and nominal values
-            gainRatios[attr.index()] = computeGainRatio(instances, attr);
+            if (attr.isNominal()) {
+                gainRatios[attr.index()] = computeGainRatio(instances, attr);
+            }
+            else if (attr.isNumeric()) {
+                gainRatios[attr.index()] = computeGainRatio(instances, attr, computeThreshold(instances, attr));
+            }
+            
         }
         m_Attribute = instances.attribute(Utils.maxIndex(gainRatios));
 
@@ -138,7 +143,13 @@ public class MyC45 extends Classifier {
             m_ClassValue = Utils.maxIndex(m_Distribution);
             m_ClassAttribute = instances.classAttribute();
         } else {
-            Instances[] splitData = splitData(instances, m_Attribute);
+            Instances[] splitData = null;
+            if (m_Attribute.isNominal()) {
+                splitData = splitData(instances, m_Attribute);
+            }
+            else if (m_Attribute.isNumeric()) {
+                splitData = splitData(instances, m_Attribute, computeThreshold(instances, m_Attribute));
+            }
             m_Successors = new MyC45[m_Attribute.numValues()];
             for (int j = 0; j < m_Attribute.numValues(); j++) {
                 m_Successors[j] = new MyC45();
@@ -171,7 +182,35 @@ public class MyC45 extends Classifier {
     }
     
     /**
-    * Computes information gain ratio for an attribute.
+    * Splits a dataset according to the values of a numeric attribute.
+    *
+    * @param data the data which is to be split
+    * @param att the attribute to be used for splitting
+    * @return the sets of instances produced by the split
+    */
+    private Instances[] splitData(Instances data, Attribute att, double threshold) {
+        Instances[] splitData = new Instances[2];
+        for (int i = 0; i < 2; i++) {
+            splitData[i] = new Instances(data, data.numInstances());
+        }
+        Enumeration instEnum = data.enumerateInstances();
+        while (instEnum.hasMoreElements()) {
+            Instance inst = (Instance) instEnum.nextElement();
+            if (inst.value(att) >= threshold) {
+                splitData[1].add(inst);
+            }
+            else {
+                splitData[0].add(inst);
+            }
+        }
+        for (int i = 0; i < splitData.length; i++) {
+            splitData[i].compactify();
+        }
+        return splitData;
+    }
+    
+    /**
+    * Computes information gain ratio for a nominal attribute.
     *
     * @param data the data for which info gain is to be computed
     * @param att the attribute
@@ -185,6 +224,36 @@ public class MyC45 extends Classifier {
         double fraction = 0.0;
         Instances[] splitData = splitData(instances, attr);
         for (int j = 0; j < attr.numValues(); j++) {
+            if (splitData[j].numInstances() > 0) {
+                infoGain -= ((double) splitData[j].numInstances() / (double) instances.numInstances()) * computeEntropy(splitData[j]);
+                fraction = (double) splitData[j].numInstances() / instances.numInstances();
+                if (fraction != 0)
+                    splitInfo += fraction * Utils.log2(fraction);
+            }
+        }
+        if (splitInfo == 0)
+            gainRatio = infoGain;
+        else
+            gainRatio = -1*infoGain/splitInfo;
+        
+        return gainRatio;
+    }
+    
+    /**
+    * Computes information gain ratio for a numeric attribute.
+    *
+    * @param data the data for which info gain is to be computed
+    * @param att the attribute
+    * @return the information gain ratio for the given attribute and data
+    * @throws Exception if computation fails
+    */
+    private double computeGainRatio(Instances instances, Attribute attr, double threshold) throws Exception {
+        double infoGain = computeEntropy(instances);
+        double splitInfo = 0;
+        double gainRatio = 0;
+        double fraction = 0.0;
+        Instances[] splitData = splitData(instances, attr, threshold);
+        for (int j = 0; j < 2; j++) {
             if (splitData[j].numInstances() > 0) {
                 infoGain -= ((double) splitData[j].numInstances() / (double) instances.numInstances()) * computeEntropy(splitData[j]);
                 fraction = (double) splitData[j].numInstances() / instances.numInstances();
@@ -256,6 +325,18 @@ public class MyC45 extends Classifier {
         }
 
         return newData;
+    }
+    
+    private double computeThreshold(Instances instances, Attribute attr) throws Exception {
+        double[] threshold = new double[instances.numInstances()];
+        double[] gainRatio = new double[instances.numInstances()];
+        for (int i=0; i<instances.numInstances()-1; i++) {
+            if (instances.instance(i).classValue() != instances.instance(i+1).classValue()) {
+                threshold[i] = (instances.instance(i).value(attr) + instances.instance(i+1).value(attr))/2;
+                gainRatio[i] = computeGainRatio(instances, attr, threshold[i]);
+            }
+        }
+        return (double) threshold[Utils.maxIndex(gainRatio)];
     }
     
     public String toString() {  
