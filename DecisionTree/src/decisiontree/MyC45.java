@@ -19,9 +19,11 @@ import weka.core.Utils;
 import weka.core.Capabilities.Capability;
 import weka.core.TechnicalInformation.Field;
 import weka.core.TechnicalInformation.Type;
+import weka.filters.*;
 
 import java.util.Enumeration;
 import weka.core.AttributeStats;
+import weka.filters.unsupervised.attribute.Add;
 
 /**
  *
@@ -125,7 +127,6 @@ public class MyC45 extends Classifier {
             else if (attr.isNumeric()) {
                 gainRatios[attr.index()] = computeGainRatio(instances, attr, computeThreshold(instances, attr));
             }
-            
         }
         m_Attribute = instances.attribute(Utils.maxIndex(gainRatios));
 
@@ -144,14 +145,17 @@ public class MyC45 extends Classifier {
             m_ClassAttribute = instances.classAttribute();
         } else {
             Instances[] splitData = null;
+            int child = 0;
             if (m_Attribute.isNominal()) {
+                child = m_Attribute.numValues();
                 splitData = splitData(instances, m_Attribute);
             }
             else if (m_Attribute.isNumeric()) {
+                child = 2;
                 splitData = splitData(instances, m_Attribute, computeThreshold(instances, m_Attribute));
             }
-            m_Successors = new MyC45[m_Attribute.numValues()];
-            for (int j = 0; j < m_Attribute.numValues(); j++) {
+            m_Successors = new MyC45[child];
+            for (int j = 0; j < child; j++) {
                 m_Successors[j] = new MyC45();
                 m_Successors[j].makeTree(splitData[j]);
             }
@@ -193,13 +197,16 @@ public class MyC45 extends Classifier {
         for (int i = 0; i < 2; i++) {
             splitData[i] = new Instances(data, data.numInstances());
         }
+        
         Enumeration instEnum = data.enumerateInstances();
         while (instEnum.hasMoreElements()) {
             Instance inst = (Instance) instEnum.nextElement();
             if (inst.value(att) >= threshold) {
+                inst.setValue(att, threshold);
                 splitData[1].add(inst);
             }
             else {
+                inst.setValue(att, 0);
                 splitData[0].add(inst);
             }
         }
@@ -294,14 +301,14 @@ public class MyC45 extends Classifier {
      return entropy + Utils.log2(data.numInstances());
     }
     
-    private Instances handleMissingValues(Instances data) {
+    private Instances handleMissingValues(Instances data) throws Exception {
         Instances newData = data;
         Enumeration attrEnum = newData.enumerateAttributes();
         while (attrEnum.hasMoreElements()) {
             Attribute attr = (Attribute) attrEnum.nextElement();
+            AttributeStats attrStats = newData.attributeStats(attr.index());
             if (attr.isNominal()) {
                 int maxIdx = 0;
-                AttributeStats attrStats = newData.attributeStats(attr.index());
                 for (int i=0; i<attr.numValues(); i++) {
                     if (attrStats.nominalCounts[i] > attrStats.nominalCounts[maxIdx]) {
                         maxIdx = i;
@@ -315,7 +322,7 @@ public class MyC45 extends Classifier {
                 }
             }
             else if (attr.isNumeric()) {
-                double mean = newData.attributeStats(attr.index()).numericStats.mean;
+                double mean = attrStats.numericStats.mean;
                 for (int i=0; i<newData.numInstances(); i++) {
                     if (newData.instance(i).isMissing(attr.index())) {
                         newData.instance(i).setValue(attr.index(), mean);

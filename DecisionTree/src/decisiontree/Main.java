@@ -227,7 +227,7 @@ public class Main {
                 System.out.println("Percentage of Test Set : " + percentTest);
                 int trainSize = (int) Math.round(dataSet.numInstances() * percentTrain / 100);
                 int testSize = dataSet.numInstances() - trainSize;
-                dataSet.randomize(new java.util.Random(0));
+                dataSet.randomize(new java.util.Random(1));
                 Instances train = new Instances(dataSet, 0, trainSize);
                 Instances test = new Instances(dataSet, trainSize, testSize);
                 cls.buildClassifier(train);
@@ -289,7 +289,12 @@ public class Main {
                     double label = cls.classifyInstance(test.instance(i));
                     test.instance(i).setClassValue(label);
                     for (int j = 0; j < test.instance(i).numValues()-1; j++) {
-                        System.out.print(test.instance(i).stringValue(j)+",");
+                        if (test.instance(i).attribute(j).isNominal()) {
+                            System.out.print(test.instance(i).stringValue(j)+",");
+                        }
+                        else {
+                            System.out.print(test.instance(i).value(j)+",");
+                        }
                     }
                     System.out.println(test.instance(i).stringValue(test.instance(i).numValues()-1));
 		}
@@ -322,7 +327,7 @@ public class Main {
                     cls = (NaiveBayes) SerializationHelper.read(
                             new FileInputStream("saves/NB/" + fileNames.get(choice)));
                 else if (classifierType.equals("ID3"))
-                    cls = (myID3) SerializationHelper.read(
+                    cls = (MyID3) SerializationHelper.read(
                             new FileInputStream("saves/ID3/" + fileNames.get(choice)));
                 else if (classifierType.equals("C45"))
                     cls = (MyC45) SerializationHelper.read(
