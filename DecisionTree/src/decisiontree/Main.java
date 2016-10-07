@@ -369,13 +369,13 @@ public class Main {
                     cls = (NaiveBayes) SerializationHelper.read(
                             new FileInputStream("saves/NB/" + fileNames.get(choice)));
                 else if (classifierType.equals("ID3"))
-                    cls = (MyID3) SerializationHelper.read(
+                    cls = (Id3) SerializationHelper.read(
                             new FileInputStream("saves/ID3/" + fileNames.get(choice)));
                 else if (classifierType.equals("MyID3"))
                     cls = (MyID3) SerializationHelper.read(
                             new FileInputStream("saves/MyID3/" + fileNames.get(choice)));
                 else if (classifierType.equals("J48"))
-                    cls = (MyID3) SerializationHelper.read(
+                    cls = (J48) SerializationHelper.read(
                             new FileInputStream("saves/J48/" + fileNames.get(choice)));
                 else if (classifierType.equals("MyC45"))
                     cls = (MyC45) SerializationHelper.read(
