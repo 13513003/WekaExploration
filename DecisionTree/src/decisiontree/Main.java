@@ -13,6 +13,8 @@ import weka.core.*;
 import weka.core.converters.*;
 import weka.filters.supervised.instance.Resample;
 import weka.classifiers.bayes.NaiveBayes;
+import weka.classifiers.trees.Id3;
+import weka.classifiers.trees.J48;
 import weka.filters.unsupervised.attribute.Remove;
 
 public class Main {
@@ -97,14 +99,32 @@ public class Main {
                     cls.buildClassifier(dataSet);
                 } else if (classifierType.equals("ID3")) {
                     try {
+                        cls = new Id3();
+                        cls.buildClassifier(dataSet);
+                    } catch (Exception ex) {
+                        System.out.println(ex);
+                    }
+                } else if (classifierType.equals("MyID3")) {
+                    try {
                         cls = new MyID3();
                         cls.buildClassifier(dataSet);
                     } catch (Exception ex) {
                         System.out.println(ex);
                     }
-                } else if (classifierType.equals("C45")) {
-                    cls = new MyC45();
-                    cls.buildClassifier(dataSet);
+                } else if (classifierType.equals("J48")) {
+                    try {
+                        cls = new J48();
+                        cls.buildClassifier(dataSet);
+                    } catch (Exception ex) {
+                        System.out.println(ex);
+                    }
+                } else if (classifierType.equals("MyC45")) {
+                    try {
+                        cls = new myC45();
+                        cls.buildClassifier(dataSet);
+                    } catch (Exception ex) {
+                        System.out.println(ex);
+                    }
                 }
                 break;
             }
@@ -181,7 +201,7 @@ public class Main {
                     }
                     case 2 : {
                         try {
-                            cls = new MyID3();
+                            cls = new Id3();
                             cls.buildClassifier(dataSet);
                             classifierType = "ID3";
                             System.out.println("ID3 Classifier successfully built.\n");
@@ -191,10 +211,32 @@ public class Main {
                         break;
                     }
                     case 3 : {
+                        try {
+                            cls = new MyID3();
+                            cls.buildClassifier(dataSet);
+                            classifierType = "MyID3";
+                            System.out.println("MyID3 Classifier successfully built.\n");
+                        } catch(Exception ex) {
+                            System.out.println(ex);
+                        }
+                        break;
+                    }
+                    case 4 : {
+                        try {
+                            cls = new J48();
+                            cls.buildClassifier(dataSet);
+                            classifierType = "J48";
+                            System.out.println("J48 Classifier successfully built.\n");
+                        } catch(Exception ex) {
+                            System.out.println(ex);
+                        }
+                        break;
+                    }
+                    case 5 : {
                         cls = new MyC45();
                         cls.buildClassifier(dataSet);
-                        classifierType = "C45";
-                        System.out.println("C45 Classifier successfully built.\n");
+                        classifierType = "MyC45";
+                        System.out.println("MyC45 Classifier successfully built.\n");
                         break;
                     }
                     default : {
@@ -329,9 +371,15 @@ public class Main {
                 else if (classifierType.equals("ID3"))
                     cls = (MyID3) SerializationHelper.read(
                             new FileInputStream("saves/ID3/" + fileNames.get(choice)));
-                else if (classifierType.equals("C45"))
+                else if (classifierType.equals("MyID3"))
+                    cls = (MyID3) SerializationHelper.read(
+                            new FileInputStream("saves/MyID3/" + fileNames.get(choice)));
+                else if (classifierType.equals("J48"))
+                    cls = (MyID3) SerializationHelper.read(
+                            new FileInputStream("saves/J48/" + fileNames.get(choice)));
+                else if (classifierType.equals("MyC45"))
                     cls = (MyC45) SerializationHelper.read(
-                            new FileInputStream("saves/C45/" + fileNames.get(choice)));
+                            new FileInputStream("saves/MyC45/" + fileNames.get(choice)));
                 System.out.println(fileNames.get(choice) + " successfully loaded.\n");
                 break;
             }
