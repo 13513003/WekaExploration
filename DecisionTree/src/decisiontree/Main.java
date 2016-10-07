@@ -120,7 +120,7 @@ public class Main {
                     }
                 } else if (classifierType.equals("MyC45")) {
                     try {
-                        cls = new myC45();
+                        cls = new MyC45();
                         cls.buildClassifier(dataSet);
                     } catch (Exception ex) {
                         System.out.println(ex);
@@ -187,7 +187,9 @@ public class Main {
                 System.out.println("Commands :");
                 System.out.println("1. Naive-Bayes");
                 System.out.println("2. Decision Tree - ID3");
-                System.out.println("3. Decision Tree - C45");
+                System.out.println("3. Decision Tree - MyID3");
+                System.out.println("4. Decision Tree - J48");
+                System.out.println("5. Decision Tree - MyC45");
                 System.out.println("0. Return");
                 System.out.print("> ");
                 int choice = in.nextInt();
